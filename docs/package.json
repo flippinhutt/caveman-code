@@ -1,14 +1,16 @@
 {
     "name": "@cave/docs",
     "private": true,
+    "version": "0.0.0",
+    "type": "module",
     "scripts": {
-        "dev": "astro dev",
-        "build": "astro build",
-        "preview": "astro preview"
+        "dev": "vitepress dev",
+        "build": "vitepress build",
+        "preview": "vitepress preview",
+        "lint:links": "vitepress build"
     },
-    "dependencies": {
-        "@astrojs/starlight": "^0.31.0",
-        "astro": "^5.3.0",
-        "sharp": "^0.33.0"
+    "devDependencies": {
+        "vitepress": "^1.6.3",
+        "vue": "^3.5.13"
     }
 }

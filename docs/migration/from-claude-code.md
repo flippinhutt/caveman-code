@@ -1,0 +1,106 @@
+---
+title: Migrating from Claude Code
+description: Zero-migration. Paste your existing config and Cave Just Works.
+---
+
+# Migrating from Claude Code
+
+The promise: **paste your existing Claude Code config into `~/.cave/` and Cave behaves the same — only cheaper**. Cave's authoring formats are a superset of Claude Code's.
+
+<CopyForLlms />
+
+## TL;DR
+
+```bash
+# 1. Install
+curl -fsSL https://cave.sh/install | bash
+
+# 2. Copy config
+cp -r ~/.claude/commands ~/.cave/
+cp -r ~/.claude/skills ~/.cave/
+cp -r ~/.claude/agents ~/.cave/
+cp ~/.claude/settings.json ~/.cave/settings.json    # hooks + permissions
+
+# 3. Project-scope
+ln -s .claude .cave   # or: cp -r .claude .cave (if you want them independent)
+
+# 4. CLAUDE.md → CAVE.md (or keep CLAUDE.md; cave reads both)
+ln -s CLAUDE.md CAVE.md
+
+# 5. MCP — already standard
+#    .mcp.json works as-is.
+
+# 6. Run
+cave
+```
+
+## What maps directly
+
+| Claude Code | Cave | Notes |
+|---|---|---|
+| `~/.claude/settings.json` | `~/.cave/settings.json` | Hooks + permissions + statusLine identical schema |
+| `~/.claude/commands/*.md` | `~/.cave/commands/*.md` | Frontmatter is a superset |
+| `~/.claude/skills/<name>/SKILL.md` | `~/.cave/skills/<name>/SKILL.md` | Identical |
+| `~/.claude/agents/<name>.md` | `~/.cave/agents/<name>.md` | Frontmatter is a superset |
+| `.mcp.json` | `.mcp.json` | Same path; no change |
+| `CLAUDE.md` | `CLAUDE.md` (read) or `CAVE.md` (preferred) | Cave reads both, layered |
+| Plan mode prompt | Plan mode | Same shape |
+| Auto-Memory | cavemem | Different backend; same UX |
+
+## Differences worth knowing
+
+### Memory
+
+Claude Code uses Auto-Memory with `~/.claude/projects/<slug>/memory/MEMORY.md`. Cave uses [cavemem](/reference/memory). To bridge:
+
+```bash
+cave memory sync --from claude
+```
+
+This imports `MEMORY.md` and per-fact files as cavemem observations. Going forward, if you keep both Claude Code and Cave running in the same project, cave reads the first 200 lines of `MEMORY.md` on every session start.
+
+### Models
+
+Claude Code is Anthropic-only. Cave is provider-agnostic. After migrating, you can:
+
+```bash
+cave --model openai/gpt-5-codex
+cave --model claude-sonnet-4   # default behavior matches Claude Code
+```
+
+### Cost
+
+By default Cave Mode compression is **on**, which Claude Code doesn't have. Expect tool-output token consumption to drop ~85%. If something looks off, bisect with:
+
+```bash
+cave --no-cave-mode
+```
+
+### Permissions
+
+Cave's permission modes (`plan` / `default` / `acceptEdits` / `auto` / `bypassPermissions`) cycle with `Shift+Tab`. Claude Code's "auto-accept" toggle is `acceptEdits` in cave; "ask" is `default`.
+
+### Hooks
+
+`PreToolUse` is **synchronous and blocking** in Cave (30s timeout). Claude Code's contract is the same. If you wrote a long-running hook expecting async semantics, move it to `PostToolUse` (which is async by default).
+
+## Confirming the migration worked
+
+```bash
+cave doctor                    # general health
+cave hooks list                # all hooks loaded
+cave skills list               # all skills loaded
+cave agents list               # all subagents loaded
+cave mcp doctor                # MCP servers reachable
+```
+
+If any of these report mismatches, [open an issue](https://github.com/JuliusBrussee/caveman-cli/issues/new?labels=migration) — we treat Claude Code parity as a CI gate.
+
+## Why not just use Claude Code?
+
+- **Cost.** Cave Mode compression saves $1.70-$6.92 per typical session (proven in `npm run bench:offline`).
+- **Provider flexibility.** Use ChatGPT Plus, Copilot, Gemini, or any OpenAI-compatible endpoint.
+- **Session branching.** `/tree`, `/fork` — no major competitor has this.
+- **MIT.** No vendor lock-in; self-host the daemon.
+
+If none of those matter to you, stay on Claude Code — it's a fine product.

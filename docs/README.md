@@ -1,20 +1,54 @@
 # Cave Docs
 
-This directory holds the source for Cave's user-facing documentation.
+VitePress source for [cave.sh/docs](https://cave.sh/docs).
 
-## Sections
+## Local dev
 
-- **routing** — plan/edit/explore/verify role model + CLI flags
-- **caching** — layered cache policy, retention, breakpoints
-- **caps** — per-turn and per-session cost caps
-- **sandbox** — macOS Seatbelt, Linux Landlock, Windows permissive
-- **mcp** — MCP client + `cave mcp serve` server mode + ACP
-- **replay** — `cave replay <rollout>` with `--apply` gate
-- **benchmarks** — SWE-bench Verified harness + nightly CI
-- **paper** — link to `research/paper/`
-- **extensions** — the skills/subagents/hooks trinity (`extensions-trinity.md`)
+```bash
+cd docs/
+npm install
+npm run dev          # http://localhost:5173/docs/
+```
 
-## Building
+## Build
 
-The docs site is a Starlight build. `npm run docs:build` produces static
-HTML. Deploy workflow is triggered on tag push.
+```bash
+npm run build        # outputs to docs/.vitepress/dist/
+npm run preview      # serves the built site
+```
+
+## Structure
+
+| Path | Purpose |
+|---|---|
+| `index.md` | Homepage |
+| `getting-started/` | Quickstart, Install, Auth, Models |
+| `reference/` | Tools, Slash Commands, Skills, Subagents, Memory, MCP, Hooks, Permissions, Plan Mode, Daemon, Recipes |
+| `migration/` | Claude Code, Codex, Aider migration guides |
+| `comparison.md` | Cave vs the field |
+| `cookbook.md` | Working recipes (CI, multi-agent review, daemon) |
+| `troubleshooting.md` | Common issues and fixes |
+| `api.md` | SDK, JSON-RPC, OpenAPI, extension API |
+| `public/llms.txt` | Mirror of root `/llms.txt` for the deployed site |
+| `.vitepress/config.ts` | VitePress configuration |
+| `.vitepress/theme/` | Custom theme + `<CopyForLlms />` button |
+
+## Authoring conventions
+
+- Drop `<CopyForLlms />` near the top of every reference page (after the H1, before the first H2).
+- Heading depth caps at H3 — H4+ does not appear in the sidebar.
+- Frontmatter `title` and `description` are required.
+- Code fences declare language: ` ```bash `, ` ```typescript `, ` ```json `.
+- Migration guides use the "TL;DR" pattern: a copy-paste block that gets the user 80% there, then differences.
+
+## Deploy
+
+The site builds to `docs/.vitepress/dist/`. The deploy target is `cave.sh/docs/` — base URL is `/docs/` (set in `.vitepress/config.ts`).
+
+A GitHub Actions workflow rebuilds the site on push to `main` and uploads to GitHub Pages or the configured static host. See `.github/workflows/docs.yml` (out of scope for this initial scaffold; track via WS11 release pipeline).
+
+## llms.txt
+
+`/llms.txt` is the LLM-friendly entry point. The canonical copy is at the repo root (`/llms.txt`). `docs/public/llms.txt` is a mirror so the deployed site exposes it at `/docs/llms.txt`.
+
+When sections are added or renamed, update both copies. The `Copy for LLMs` button on each page is plain-text article extraction — no manual mirroring needed for individual pages.
