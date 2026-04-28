@@ -1,0 +1,73 @@
+# Cave CLI — terminal coding agent
+
+> Cave is the only terminal coding agent that beats Claude Code on cost,
+> Aider on context selection, Codex on provider flexibility, and opencode
+> on session UX — in a single MIT-licensed binary. Three-layer Cave Mode
+> compression gives ~85% reduction on tool output and $1.70-$6.92 of
+> Anthropic spend saved per typical session.
+
+This file is the LLM-friendly entry point to Cave's documentation. Each
+linked page is plain markdown with a "Copy for LLMs" button at the top
+that strips the navigation chrome.
+
+## Install
+
+```
+curl -fsSL https://cave.sh/install | bash
+```
+
+## Top-level docs
+
+- [Quickstart](https://cave.sh/docs/getting-started/quickstart): zero-to-first-prompt in 30 seconds
+- [Install](https://cave.sh/docs/getting-started/installation): macOS, Linux, Windows, Docker, Homebrew, npm
+- [Auth & Providers](https://cave.sh/docs/getting-started/auth): 20+ providers, 6 OAuth flows
+- [Models](https://cave.sh/docs/getting-started/models): default models, thinking levels, architect/editor split
+
+## Reference
+
+- [Tools](https://cave.sh/docs/reference/tools): built-in tools, Cave Mode compression, cost transparency
+- [Slash Commands](https://cave.sh/docs/reference/slash-commands): built-ins + authoring markdown commands
+- [Skills](https://cave.sh/docs/reference/skills): markdown skills loaded by description match (Claude Code-compatible)
+- [Subagents](https://cave.sh/docs/reference/subagents): worktree-isolated parallel agents via Task tool
+- [Memory (cavemem)](https://cave.sh/docs/reference/memory): cavemem integration, episodic-to-semantic consolidation
+- [MCP](https://cave.sh/docs/reference/mcp): client + cave-as-server, stdio/HTTP/inproc transports
+- [Hooks](https://cave.sh/docs/reference/hooks): 12-event lifecycle (Claude Code settings.json schema)
+- [Permissions](https://cave.sh/docs/reference/permissions): five modes, Seatbelt/Landlock/Restricted Tokens
+- [Plan Mode](https://cave.sh/docs/reference/plan-mode): read-only exploration, structured plan, /act to execute
+- [Daemon](https://cave.sh/docs/reference/daemon): cave serve, multi-client attach, worker mode
+- [Recipes](https://cave.sh/docs/reference/recipes): YAML pipelines, Goose-style schema
+
+## Migration
+
+- [From Claude Code](https://cave.sh/docs/migration/from-claude-code): paste your config, it works
+- [From Codex](https://cave.sh/docs/migration/from-codex): AGENTS.md, .mcp.json, sandbox parity
+- [From Aider](https://cave.sh/docs/migration/from-aider): repo map and edit-format-per-model
+
+## Cookbook & API
+
+- [Cookbook](https://cave.sh/docs/cookbook): GitHub Actions, multi-agent review, daemon pair programming
+- [Comparison](https://cave.sh/docs/comparison): Cave vs Claude Code / Codex / Aider / Crush / opencode
+- [Troubleshooting](https://cave.sh/docs/troubleshooting): install, auth, sessions, tools, hooks, MCP
+- [API](https://cave.sh/docs/api): SDK, JSON-RPC, OpenAPI, extension API
+
+## Differentiators (one-line each)
+
+1. Cave Mode compression: 3 layers, ~85% reduction on tool output
+2. 20+ providers + 6 OAuth flows (Claude Pro, ChatGPT Plus, Copilot, Gemini, Antigravity)
+3. Session branching (`/tree`, `/fork`) — no major competitor has this
+4. Plan mode + 7 parallel worktree-isolated subagents
+5. Native MCP client + Cave can serve as MCP server
+6. Native sandbox: macOS Seatbelt, Linux Landlock, Windows Restricted Tokens
+7. Aider-grade repo map (PageRank) + edit-format-per-model
+8. Daemon (`cave serve`) survives SSH drops; multi-client attach
+9. Shadow-git checkpoints + `/rollback N`
+10. cavemem-backed memory with episodic-to-semantic consolidation
+11. Claude Code authoring formats (settings.json, commands, skills, agents) — paste-and-go compat
+12. MIT licensed; no telemetry by default
+
+## Repo
+
+- Source: https://github.com/JuliusBrussee/caveman-cli
+- Issues: https://github.com/JuliusBrussee/caveman-cli/issues
+- Discord: https://discord.gg/cave-cli
+- Releases: https://github.com/JuliusBrussee/caveman-cli/releases
