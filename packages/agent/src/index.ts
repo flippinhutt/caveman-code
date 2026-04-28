@@ -6,6 +6,8 @@ export * from "./agent-loop.js";
 export * from "./compression/index.js";
 // MCP
 export * as mcp from "./mcp/index.js";
+// Memory (WS7)
+export * as memory from "./memory/index.js";
 // Proxy utilities
 export * from "./proxy.js";
 // Roles

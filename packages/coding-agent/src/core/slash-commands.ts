@@ -91,6 +91,11 @@ export const BUILTIN_SLASH_COMMANDS: ReadonlyArray<BuiltinSlashCommand> = [
 	{ name: "hooks", description: "List, test, and manage Claude Code-compatible lifecycle hooks (WS4)" },
 	{ name: "mcp", description: "Manage MCP servers (list, doctor, login, reload). See: cave mcp --help." },
 	{ name: "sandbox", description: "Show or change the sandbox policy (WS3, experimental)" },
+	{
+		name: "memory",
+		description:
+			"Memory layer (cavemem-backed). Subcommands: search, save, show, forget, export, consolidate, sync, off, on, config.",
+	},
 	{ name: "quit", description: "Quit pi" },
 ];
 
@@ -469,3 +474,11 @@ export {
 
 // WS3: re-export the sandbox command handlers for CLI dispatch.
 export { handleSandboxCommand, isSandboxFlagEnabled } from "./slash-commands/sandbox.js";
+
+// WS7: re-export the memory command handlers for CLI dispatch.
+export {
+	runMemorySlashCommand,
+	parseMemorySlash,
+	buildSessionStartPrelude,
+} from "./slash-commands/memory.js";
+export type { MemorySlashContext, MemorySlashResult } from "./slash-commands/memory.js";

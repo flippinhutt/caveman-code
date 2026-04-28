@@ -19,6 +19,12 @@ import { HooksRegistry, type HooksRegistryOptions } from "./registry.js";
 export * from "./events.js";
 export { HooksRegistry, type HooksRegistryOptions, type MatchedHook } from "./registry.js";
 export { HooksExecutor, type ExecutorOptions } from "./executor.js";
+export {
+	buildDefaultCavememHooks,
+	buildCavememHooksSnippet,
+	CAVEMEM_HOOK_EVENT_NAMES,
+	type CavememHookOptions,
+} from "./cavemem-hooks.js";
 
 export interface HooksManagerOptions {
 	executor?: ExecutorOptions;
