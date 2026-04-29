@@ -78,6 +78,7 @@ export const BUILTIN_SLASH_COMMANDS: ReadonlyArray<BuiltinSlashCommand> = [
 	{ name: "login", description: "Login with OAuth provider" },
 	{ name: "logout", description: "Logout from OAuth provider" },
 	{ name: "new", description: "Start a new session" },
+	{ name: "clear", description: "Clear the current context and start a new session (alias for /new)" },
 	{ name: "compact", description: "Manually compact the session context" },
 	{ name: "freeze", description: "Cave-optimized compaction checkpoint (optional label)" },
 	{ name: "checkpoints", description: "List manual freeze checkpoints in this session" },
