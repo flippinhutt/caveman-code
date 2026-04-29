@@ -96,6 +96,9 @@ import { extensionForImageMimeType, readClipboardImage } from "../../utils/clipb
 import { parseGitUrl } from "../../utils/git.js";
 import { ensureTool } from "../../utils/tools-manager.js";
 import { ActionBarComponent } from "./components/action-bar.js";
+import { ApprovalPromptUI } from "./components/approval-prompt.js";
+import { showConfirmPrompt } from "./components/confirm-prompt.js";
+import { InMemorySubagentRegistry } from "../../core/subagents-registry.js";
 import { ArminComponent } from "./components/armin.js";
 import { AssistantMessageComponent } from "./components/assistant-message.js";
 import { BashExecutionComponent } from "./components/bash-execution.js";
@@ -251,9 +254,14 @@ export class InteractiveMode {
 	// Agent subscription unsubscribe function
 	private unsubscribe?: () => void;
 
-	// F2 subagent overlay (no-op shell until WS6 lands the real registry).
+	// F2 subagent overlay backed by the in-memory registry.
 	private subagentOverlay: SubagentOverlay | undefined = undefined;
 	private subagentPanel: SidePanelHandle | null = null;
+	private subagentRegistry: InMemorySubagentRegistry = new InMemorySubagentRegistry();
+	// SIGINT-double or other forced-shutdown paths set this to bypass the
+	// confirm prompt. Reset on a normal /quit so future shutdowns confirm
+	// again.
+	private skipShutdownConfirm = false;
 
 	// F1 help overlay handle (null when not visible).
 	private helpOverlay: OverlayHandle | null = null;
@@ -351,7 +359,11 @@ export class InteractiveMode {
 		this.version = VERSION;
 		this.ui = new TUI(new ProcessTerminal(), this.settingsManager.getShowHardwareCursor());
 		this.ui.setClearOnShrink(this.settingsManager.getClearOnShrink());
-		this.subagentOverlay = new SubagentOverlay({ registry: NULL_SUBAGENT_REGISTRY });
+		// WS3: feed the 4-verb approval overlay to the agent so any sandbox-
+		// policy-aware tool can call session.permissionUI.chooseVerb(...) and
+		// surface the prompt.
+		this.session.setPermissionUI(new ApprovalPromptUI(this.ui));
+		this.subagentOverlay = new SubagentOverlay({ registry: this.subagentRegistry });
 		this.subagentOverlay.bindRedraw(() => this.ui.requestRender());
 		this.headerContainer = new Container();
 		this.chatContainer = new Container();
@@ -2646,6 +2658,7 @@ export class InteractiveMode {
 					this.pendingTools.set(event.toolCallId, component);
 				}
 				component.markExecutionStarted();
+				this.subagentRegistry.onToolStart(event.toolCallId, event.toolName, event.args ?? {});
 				this.ui.requestRender();
 				break;
 			}
@@ -2666,6 +2679,7 @@ export class InteractiveMode {
 					this.pendingTools.delete(event.toolCallId);
 					this.ui.requestRender();
 				}
+				this.subagentRegistry.onToolEnd(event.toolCallId, event.toolName, event.isError);
 				break;
 			}
 
@@ -3037,6 +3051,9 @@ export class InteractiveMode {
 	private handleCtrlC(): void {
 		const now = Date.now();
 		if (now - this.lastSigintTime < 500) {
+			// Double Ctrl+C is the user's "I really mean it" signal — skip the
+			// confirm overlay and force-quit.
+			this.skipShutdownConfirm = true;
 			void this.shutdown();
 		} else {
 			this.clearEditor();
@@ -3057,6 +3074,26 @@ export class InteractiveMode {
 
 	private async shutdown(): Promise<void> {
 		if (this.isShuttingDown) return;
+
+		// Confirm before quitting if state would be lost: actively streaming or
+		// queued messages waiting to be flushed. Bypass when SIGINT-double has
+		// already escalated us (force flag).
+		if (!this.skipShutdownConfirm) {
+			const queuedCount = this.compactionQueuedMessages.length;
+			const isStreaming = this.session.isStreaming;
+			if (isStreaming || queuedCount > 0) {
+				const detail = isStreaming
+					? "Quitting now will abort the current response."
+					: `${queuedCount} queued message${queuedCount === 1 ? "" : "s"} will be discarded.`;
+				const answer = await showConfirmPrompt(this.ui, {
+					question: "Quit cave?",
+					detail,
+					defaultAnswer: "no",
+				});
+				if (answer === "no") return;
+			}
+		}
+
 		this.isShuttingDown = true;
 		await this.runtimeHost.dispose();
 

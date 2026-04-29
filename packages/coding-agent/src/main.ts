@@ -56,6 +56,7 @@ import { printTimings, resetTimings, time } from "./core/timings.js";
 import { allTools } from "./core/tools/index.js";
 import { runMigrations, showDeprecationWarnings } from "./migrations.js";
 import { InteractiveMode, runPrintMode, runRpcMode } from "./modes/index.js";
+import { HeadlessPromptUI } from "./core/permission-prompt-headless.js";
 import { ExtensionSelectorComponent } from "./modes/interactive/components/extension-selector.js";
 import { initTheme, setDetectedBackground, stopThemeWatcher } from "./modes/interactive/theme/theme.js";
 import { runOnboarding, shouldRunOnboarding } from "./onboarding/wizard.js";
@@ -749,6 +750,10 @@ export async function main(args: string[]) {
 			scopedModels: sessionOptions.scopedModels,
 			tools: sessionOptions.tools,
 			customTools: sessionOptions.customTools,
+			// WS3: default to the non-blocking headless UI. Interactive mode
+			// upgrades to ApprovalPromptUI once the TUI is built (see
+			// modes/interactive/interactive-mode.ts).
+			permissionUI: new HeadlessPromptUI(),
 		});
 		const cliThinkingOverride = parsed.thinking !== undefined || cliThinkingFromModel;
 		if (created.session.model && cliThinkingOverride) {

@@ -1,5 +1,5 @@
 import type { AssistantMessage } from "@cave/ai";
-import { Container, Markdown, type MarkdownTheme, Spacer, Text } from "@cave/tui";
+import { Container, Markdown, type MarkdownTheme, Spacer, StreamingMarkdown, Text } from "@cave/tui";
 import { getMarkdownTheme, theme } from "../theme/theme.js";
 
 /**
@@ -64,8 +64,11 @@ export class AssistantMessageComponent extends Container {
 		for (let i = 0; i < message.content.length; i++) {
 			const content = message.content[i];
 			if (content.type === "text" && content.text.trim()) {
-				// Assistant text messages — plain markdown, no background
-				this.contentContainer.addChild(new Markdown(content.text.trim(), 1, 0, this.markdownTheme));
+				// Assistant text messages — streaming-aware markdown handles
+				// partial syntax (open fences, dangling **, unfinished [ ) so
+				// mid-stream renders don't flicker. On stream finalize the
+				// component re-renders the canonical text.
+				this.contentContainer.addChild(new StreamingMarkdown(content.text.trim(), 1, 0, this.markdownTheme));
 			} else if (content.type === "thinking" && content.thinking.trim()) {
 				// Add spacing only when another visible assistant content block follows
 				const hasVisibleContentAfter = message.content

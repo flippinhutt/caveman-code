@@ -55,6 +55,8 @@ export interface CreateAgentSessionFromServicesOptions {
 	scopedModels?: Array<{ model: Model<any>; thinkingLevel?: ThinkingLevel }>;
 	tools?: Tool[];
 	customTools?: ToolDefinition[];
+	/** WS3 PromptUI for tool permission prompts (interactive: ApprovalPromptUI; -p: HeadlessPromptUI). */
+	permissionUI?: import("./permission-prompt.js").PromptUI;
 }
 
 /**
@@ -193,5 +195,6 @@ export async function createAgentSessionFromServices(
 		tools: options.tools,
 		customTools: options.customTools,
 		sessionStartEvent: options.sessionStartEvent,
+		permissionUI: options.permissionUI,
 	});
 }

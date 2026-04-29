@@ -72,6 +72,11 @@ export interface CreateAgentSessionOptions {
 	settingsManager?: SettingsManager;
 	/** Session start event metadata for extension runtime startup. */
 	sessionStartEvent?: SessionStartEvent;
+	/**
+	 * WS3 PromptUI for tool permission prompts. Interactive hosts pass
+	 * `ApprovalPromptUI(tui)`; headless / -p hosts pass `HeadlessPromptUI()`.
+	 */
+	permissionUI?: import("./permission-prompt.js").PromptUI;
 }
 
 /** Result from createAgentSession */
@@ -353,6 +358,7 @@ export async function createAgentSession(options: CreateAgentSessionOptions = {}
 		initialActiveToolNames,
 		extensionRunnerRef,
 		sessionStartEvent: options.sessionStartEvent,
+		permissionUI: options.permissionUI,
 	});
 	const extensionsResult = resourceLoader.getExtensions();
 

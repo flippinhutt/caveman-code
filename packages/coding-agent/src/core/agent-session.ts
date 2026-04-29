@@ -71,6 +71,7 @@ import { buildDefaultCavememHooks } from "./hooks/cavemem-hooks.js";
 import type { HooksConfig } from "./hooks/events.js";
 import { createHooksExtension, HooksManager } from "./hooks/index.js";
 import type { BashExecutionMessage, CustomMessage } from "./messages.js";
+import { PermissionSession, type PromptUI } from "./permission-prompt.js";
 import type { ModelRegistry } from "./model-registry.js";
 import { expandPromptTemplate, type PromptTemplate } from "./prompt-templates.js";
 import type { ResourceExtensionPaths, ResourceLoader } from "./resource-loader.js";
@@ -165,6 +166,13 @@ export interface AgentSessionConfig {
 	extensionRunnerRef?: { current?: ExtensionRunner };
 	/** Session start event metadata emitted when extensions bind to this runtime. */
 	sessionStartEvent?: SessionStartEvent;
+	/**
+	 * WS3 permission UI. When set, tools that opt into the SandboxPolicy
+	 * reducer can call `agentSession.permissionSession?.decide(action)` and
+	 * surface the 4-verb overlay. In headless mode, supply a HeadlessPromptUI
+	 * so non-interactive runs do not block.
+	 */
+	permissionUI?: PromptUI;
 }
 
 export interface ExtensionBindings {
@@ -276,6 +284,10 @@ export class AgentSession {
 	private _llmlingua: LLMLinguaMiddleware | null = null;
 	// Hooks subsystem (WS4). Rebuilt in `_buildRuntime` from current settings.
 	private _hooksManager: HooksManager | undefined;
+	// WS3 permission UI + lazy session. UI is injected by the host (interactive
+	// or headless). The session is rebuilt when permission mode changes.
+	private _permissionUI: PromptUI | undefined;
+	private _permissionSession: PermissionSession | undefined;
 
 	private _resourceLoader: ResourceLoader;
 	private _customTools: ToolDefinition[];
@@ -323,6 +335,7 @@ export class AgentSession {
 		this._initialActiveToolNames = config.initialActiveToolNames;
 		this._baseToolsOverride = config.baseToolsOverride;
 		this._sessionStartEvent = config.sessionStartEvent ?? { type: "session_start", reason: "startup" };
+		this._permissionUI = config.permissionUI;
 
 		// Always subscribe to agent events for internal handling
 		// (session persistence, extensions, auto-compaction, retry logic)
@@ -2463,6 +2476,63 @@ export class AgentSession {
 	/** Hooks manager bound to this session (lifecycle events). */
 	get hooksManager(): HooksManager | undefined {
 		return this._hooksManager;
+	}
+
+	/**
+	 * WS3 PromptUI bound to this session. Tools that opt into sandbox policy
+	 * enforcement can pull this and call `chooseVerb()` directly, or use the
+	 * `permissionSession` getter below for the full reducer flow.
+	 */
+	get permissionUI(): PromptUI | undefined {
+		return this._permissionUI;
+	}
+
+	/**
+	 * Late-bind the PromptUI after session construction. Used by interactive
+	 * mode, which only has the TUI handle once the runtime has booted, but
+	 * needs to feed an `ApprovalPromptUI(this.ui)` to the agent so subsequent
+	 * tool calls can prompt.
+	 */
+	setPermissionUI(ui: PromptUI | undefined): void {
+		this._permissionUI = ui;
+		// Invalidate any cached PermissionSession so the next access rebuilds
+		// against the new UI.
+		this._permissionSession = undefined;
+	}
+
+	/**
+	 * Lazy `PermissionSession` for tools that want full reducer + persistence.
+	 * Built on first access; rebuilt by `setPermissionMode()` when the mode
+	 * changes. Returns undefined if no `permissionUI` was supplied to config.
+	 */
+	get permissionSession(): PermissionSession | undefined {
+		if (!this._permissionUI) return undefined;
+		if (!this._permissionSession) {
+			// Lazy import to keep module load time clean for headless runs that
+			// never touch the policy primitives.
+			const { defaultPolicyForMode } = require("@cave/agent");
+			const mode = (((this.settingsManager as any).getPermissionMode?.() as string | undefined) ?? "default") as
+				import("@cave/agent").PermissionMode;
+			this._permissionSession = new PermissionSession({
+				cwd: this._cwd,
+				policy: defaultPolicyForMode(mode, this._cwd),
+				mode,
+				ui: this._permissionUI,
+			});
+		}
+		return this._permissionSession;
+	}
+
+	/** Rebuild the PermissionSession with a new permission mode. */
+	setPermissionMode(mode: import("@cave/agent").PermissionMode): void {
+		if (!this._permissionUI) return;
+		const { defaultPolicyForMode } = require("@cave/agent");
+		this._permissionSession = new PermissionSession({
+			cwd: this._cwd,
+			policy: defaultPolicyForMode(mode, this._cwd),
+			mode,
+			ui: this._permissionUI,
+		});
 	}
 
 	private async _buildRuntime(options: {
