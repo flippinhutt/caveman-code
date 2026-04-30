@@ -378,7 +378,6 @@ cave exec "lint and fix" --output-schema schema.json   # CI mode
 
 ## Community
 
-- **Discord** — [discord.gg/cave-cli](https://discord.gg/cave-cli)
 - **Issues** — [github.com/JuliusBrussee/caveman-cli/issues](https://github.com/JuliusBrussee/caveman-cli/issues)
 - **Releases** — [github.com/JuliusBrussee/caveman-cli/releases](https://github.com/JuliusBrussee/caveman-cli/releases)
 - **Changelog** — [CHANGELOG.md](CHANGELOG.md) — auto-generated from conventional commits on tag push
