@@ -109,6 +109,11 @@ export const BUILTIN_SLASH_COMMANDS: ReadonlyArray<BuiltinSlashCommand> = [
 	{ name: "checkpoint", description: "Create a labeled shadow-git snapshot (WS17). /checkpoint <name>" },
 	{ name: "rollback", description: "Restore from a shadow-git snapshot (WS17). /rollback [N] [--file <path>] | list" },
 	{
+		name: "goal",
+		description:
+			"Start an autonomous goal loop (Ralph-style). Usage: /goal <text>. Runs until sentinel, caps, or paused.",
+	},
+	{
 		name: "plan",
 		description: "Enter read-only plan mode. Agent produces a written plan; type /act to execute.",
 	},

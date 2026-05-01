@@ -15,6 +15,7 @@ import { handleAttachCommand } from "./cli/attach.js";
 import { runDoctor } from "./cli/doctor.js";
 import { handleExecCommand } from "./cli/exec.js";
 import { processFileArguments } from "./cli/file-processor.js";
+import { handleGoalCommand } from "./cli/goal-cli.js";
 import { buildInitialMessage } from "./cli/initial-message.js";
 import { handleListCommand } from "./cli/list.js";
 import { listModels } from "./cli/list-models.js";
@@ -557,6 +558,11 @@ export async function main(args: string[]) {
 
 	// WS16: cave exec — non-interactive single-shot CI mode.
 	if (await handleExecCommand(args)) {
+		return;
+	}
+
+	// `cave goal …` — autonomous Ralph-style goal loop driver.
+	if (await handleGoalCommand(args)) {
 		return;
 	}
 
